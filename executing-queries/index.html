@@ -408,13 +408,13 @@ $server = new StandardServer($config);
 So for example following batch will require single DB request (if user field is deferred):</p>
 <pre><code class="json">[
   {
-    &quot;query&quot;: &quot;{user(id: 1)} { id }&quot;
+    &quot;query&quot;: &quot;{user(id: 1) { id }}&quot;
   },
   {
-    &quot;query&quot;: &quot;{user(id: 2)} { id }&quot;
+    &quot;query&quot;: &quot;{user(id: 2) { id }}&quot;
   },
   {
-    &quot;query&quot;: &quot;{user(id: 3)} { id }&quot;
+    &quot;query&quot;: &quot;{user(id: 3) { id }}&quot;
   }
 ]
 </code></pre>
