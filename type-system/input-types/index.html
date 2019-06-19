@@ -361,7 +361,7 @@ $queryType = new ObjectType([
             'type' =&gt; Type::listOf($storyType),
             'args' =&gt; [
                 'filters' =&gt; [
-                    'type' =&gt; Type::nonNull($filters),
+                    'type' =&gt; $filters,
                     'defaultValue' =&gt; [
                         'popular' =&gt; true
                     ]
