@@ -75,12 +75,12 @@ class StoryType extends ObjectType
             'interfaces' => [
                 Types::node()
             ],
-            'resolveField' => function($value, $args, $context, ResolveInfo $info) {
+            'resolveField' => function($story, $args, $context, ResolveInfo $info) {
                 $method = 'resolve' . ucfirst($info->fieldName);
                 if (method_exists($this, $method)) {
-                    return $this->{$method}($value, $args, $context, $info);
+                    return $this->{$method}($story, $args, $context, $info);
                 } else {
-                    return $value->{$info->fieldName};
+                    return $story->{$info->fieldName};
                 }
             }
         ];
@@ -123,5 +123,17 @@ class StoryType extends ObjectType
     {
         $args += ['after' => null];
         return DataSource::findComments($story->id, $args['limit'], $args['after']);
+    }
+    
+    public function resolveMentions(Story $story, $args, AppContext $context){
+        return DataSource::findStoryMentions($story->id);
+    }
+
+    public function resolveLikedBy(Story $story, $args, AppContext $context){
+        return DataSource::findLikes($story->id,10);
+    }
+
+    public function resolveLikes(Story $story, $args, AppContext $context){
+        return DataSource::findLikes($story->id,10);
     }
 }

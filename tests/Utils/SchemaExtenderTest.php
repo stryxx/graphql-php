@@ -219,7 +219,9 @@ class SchemaExtenderTest extends TestCase
     {
         $ast              = Parser::parse(SchemaPrinter::doPrint($extendedSchema));
         $ast->definitions = array_values(array_filter(
-            $ast->definitions instanceof NodeList ? iterator_to_array($ast->definitions->getIterator()) : $ast->definitions,
+            $ast->definitions instanceof NodeList
+                ? iterator_to_array($ast->definitions->getIterator())
+                : $ast->definitions,
             function (Node $node) : bool {
                 return ! in_array(Printer::doPrint($node), $this->testSchemaDefinitions, true);
             }
@@ -1290,12 +1292,10 @@ class SchemaExtenderTest extends TestCase
             extend schema @unknown
         ';
 
-        try {
-            $this->extendTestSchema($sdl);
-            self::fail();
-        } catch (Error $error) {
-            self::assertEquals('Unknown directive "unknown".', $error->getMessage());
-        }
+        $this->expectException(Error::class);
+        $this->expectExceptionMessage('Unknown directive "unknown".');
+
+        $this->extendTestSchema($sdl);
     }
 
     /**
@@ -1573,68 +1573,6 @@ class SchemaExtenderTest extends TestCase
                 self::assertEquals('Cannot extend type "UnknownType" because it does not exist in the existing schema.', $error->getMessage());
             }
         }
-    }
-
-    /**
-     * @see it('maintains configuration of the original schema object')
-     */
-    public function testMaintainsConfigurationOfTheOriginalSchemaObject()
-    {
-        self::markTestSkipped('allowedLegacyNames currently not supported');
-
-        $testSchemaWithLegacyNames = new Schema(
-            [
-                'query' => new ObjectType([
-                    'name' => 'Query',
-                    'fields' => static function () {
-                        return ['id' => ['type' => Type::id()]];
-                    },
-                ]),
-            ]/*,
-            [ 'allowedLegacyNames' => ['__badName'] ]
-            */
-        );
-
-        $ast    = Parser::parse('
-            extend type Query {
-                __badName: String
-            }
-        ');
-        $schema = SchemaExtender::extend($testSchemaWithLegacyNames, $ast);
-        self::assertEquals(['__badName'], $schema->__allowedLegacyNames);
-    }
-
-    /**
-     * @see it('adds to the configuration of the original schema object')
-     */
-    public function testAddsToTheConfigurationOfTheOriginalSchemaObject()
-    {
-        self::markTestSkipped('allowedLegacyNames currently not supported');
-
-        $testSchemaWithLegacyNames = new Schema(
-            [
-                'query' => new ObjectType([
-                    'name' => 'Query',
-                    'fields' => static function () {
-                        return ['__badName' => ['type' => Type::string()]];
-                    },
-                ]),
-            ]/*,
-            ['allowedLegacyNames' => ['__badName']]
-            */
-        );
-
-        $ast = Parser::parse('
-          extend type Query {
-            __anotherBadName: String
-          }
-        ');
-
-        $schema = SchemaExtender::extend($testSchemaWithLegacyNames, $ast, [
-            'allowedLegacyNames' => ['__anotherBadName'],
-        ]);
-
-        self::assertEquals(['__badName', '__anotherBadName'], $schema->__allowedLegacyNames);
     }
 
     /**

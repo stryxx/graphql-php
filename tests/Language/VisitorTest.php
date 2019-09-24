@@ -16,19 +16,29 @@ use GraphQL\Language\Parser;
 use GraphQL\Language\Printer;
 use GraphQL\Language\Visitor;
 use GraphQL\Tests\Validator\ValidatorTestCase;
+use GraphQL\Type\Definition\EnumType;
+use GraphQL\Type\Definition\InputObjectType;
+use GraphQL\Type\Definition\ListOfType;
+use GraphQL\Type\Definition\NonNull;
+use GraphQL\Type\Definition\ScalarType;
 use GraphQL\Type\Definition\Type;
 use GraphQL\Utils\TypeInfo;
 use function array_keys;
+use function array_pop;
 use function array_slice;
 use function count;
 use function file_get_contents;
 use function func_get_args;
 use function gettype;
 use function is_array;
+use function is_numeric;
 use function iterator_to_array;
 
 class VisitorTest extends ValidatorTestCase
 {
+    /**
+     * @see it('validates path argument')
+     */
     public function testValidatesPathArgument() : void
     {
         $visited = [];
@@ -65,12 +75,49 @@ class VisitorTest extends ValidatorTestCase
         self::assertEquals($expected, $visited);
     }
 
+    /**
+     * @see it('validates ancestors argument')
+     */
+    public function testValidatesAncestorsArgument()
+    {
+        $ast          = Parser::parse('{ a }', ['noLocation' => true]);
+        $visitedNodes = [];
+
+        Visitor::visit($ast, [
+            'enter' => static function ($node, $key, $parent, $path, $ancestors) use (&$visitedNodes) {
+                $inArray = is_numeric($key);
+                if ($inArray) {
+                    $visitedNodes[] = $parent;
+                }
+                $visitedNodes[] = $node;
+
+                $expectedAncestors = array_slice($visitedNodes, 0, -2);
+                self::assertEquals($expectedAncestors, $ancestors);
+            },
+            'leave' => static function ($node, $key, $parent, $path, $ancestors) use (&$visitedNodes) {
+                $expectedAncestors = array_slice($visitedNodes, 0, -2);
+                self::assertEquals($expectedAncestors, $ancestors);
+
+                $inArray = is_numeric($key);
+                if ($inArray) {
+                    array_pop($visitedNodes);
+                }
+                array_pop($visitedNodes);
+            },
+        ]);
+    }
+
     private function checkVisitorFnArgs($ast, $args, $isEdited = false)
     {
         /** @var Node $node */
         [$node, $key, $parent, $path, $ancestors] = $args;
 
-        $parentArray = $parent && ! is_array($parent) ? ($parent instanceof NodeList ? iterator_to_array($parent) : $parent->toArray()) : $parent;
+        $parentArray = $parent && ! is_array($parent)
+            ? ($parent instanceof NodeList
+                ? iterator_to_array($parent)
+                : $parent->toArray()
+            )
+            : $parent;
 
         self::assertInstanceOf(Node::class, $node);
         self::assertContains($node->kind, array_keys(NodeKind::$classMap));
@@ -114,7 +161,9 @@ class VisitorTest extends ValidatorTestCase
     {
         $result = $ast;
         foreach ($path as $key) {
-            $resultArray = $result instanceof NodeList ? iterator_to_array($result) : $result->toArray();
+            $resultArray = $result instanceof NodeList
+                ? iterator_to_array($result)
+                : $result->toArray();
             self::assertArrayHasKey($key, $resultArray);
             $result = $resultArray[$key];
         }
@@ -1378,8 +1427,9 @@ class VisitorTest extends ValidatorTestCase
                         $this->checkVisitorFnArgs($ast, func_get_args());
                         $parentType = $typeInfo->getParentType();
                         $type       = $typeInfo->getType();
-                        $inputType  = $typeInfo->getInputType();
-                        $visited[]  = [
+                        /** @var ScalarType|EnumType|InputObjectType|ListOfType|NonNull|null $inputType */
+                        $inputType = $typeInfo->getInputType();
+                        $visited[] = [
                             'enter',
                             $node->kind,
                             $node->kind === 'Name' ? $node->value : null,
@@ -1392,8 +1442,9 @@ class VisitorTest extends ValidatorTestCase
                         $this->checkVisitorFnArgs($ast, func_get_args());
                         $parentType = $typeInfo->getParentType();
                         $type       = $typeInfo->getType();
-                        $inputType  = $typeInfo->getInputType();
-                        $visited[]  = [
+                        /** @var ScalarType|EnumType|InputObjectType|ListOfType|NonNull|null $inputType */
+                        $inputType = $typeInfo->getInputType();
+                        $visited[] = [
                             'leave',
                             $node->kind,
                             $node->kind === 'Name' ? $node->value : null,
@@ -1470,8 +1521,9 @@ class VisitorTest extends ValidatorTestCase
                         $this->checkVisitorFnArgs($ast, func_get_args(), true);
                         $parentType = $typeInfo->getParentType();
                         $type       = $typeInfo->getType();
-                        $inputType  = $typeInfo->getInputType();
-                        $visited[]  = [
+                        /** @var ScalarType|EnumType|InputObjectType|ListOfType|NonNull|null $inputType */
+                        $inputType = $typeInfo->getInputType();
+                        $visited[] = [
                             'enter',
                             $node->kind,
                             $node->kind === 'Name' ? $node->value : null,
@@ -1504,8 +1556,9 @@ class VisitorTest extends ValidatorTestCase
                         $this->checkVisitorFnArgs($ast, func_get_args(), true);
                         $parentType = $typeInfo->getParentType();
                         $type       = $typeInfo->getType();
-                        $inputType  = $typeInfo->getInputType();
-                        $visited[]  = [
+                        /** @var ScalarType|EnumType|InputObjectType|ListOfType|NonNull|null $inputType */
+                        $inputType = $typeInfo->getInputType();
+                        $visited[] = [
                             'leave',
                             $node->kind,
                             $node->kind === 'Name' ? $node->value : null,

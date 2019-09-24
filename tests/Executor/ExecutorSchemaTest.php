@@ -75,7 +75,7 @@ class ExecutorSchemaTest extends TestCase
                 'article' => [
                     'type'    => $BlogArticle,
                     'args'    => ['id' => ['type' => Type::id()]],
-                    'resolve' => function ($_, $args) {
+                    'resolve' => function ($rootValue, $args) {
                         return $this->article($args['id']);
                     },
                 ],
@@ -198,7 +198,7 @@ class ExecutorSchemaTest extends TestCase
                             'isPublished' => true,
                             'title'       => 'My Article 1',
                             'body'        => 'This is a post',
-                            'keywords'    => ['foo', 'bar', '1', 'true', null],
+                            'keywords'    => ['foo', 'bar', '1', '1', null],
                         ],
                     ],
                     'meta' => [ 'title' => 'My Article 1 | My Blog' ],

@@ -33,7 +33,7 @@ See [related documentation](executing-queries.md).
  * fieldResolver:
  *    A resolver function to use when one is not provided by the schema.
  *    If not provided, the default field resolver is used (which looks for a
- *    value on the source value with the field's name).
+ *    value on the object value with the field's name).
  * validationRules:
  *    A set of rules for query validation step. Default value is all available rules.
  *    Empty array would allow to skip query validation (may be convenient for persisted
@@ -299,7 +299,7 @@ static function getNullableType($type)
 ```
 # GraphQL\Type\Definition\ResolveInfo
 Structure containing information useful for field resolution process.
-Passed as 3rd argument to every field resolver. See [docs on field resolving (data fetching)](data-fetching.md).
+Passed as 4th argument to every field resolver. See [docs on field resolving (data fetching)](data-fetching.md).
 
 **Class Props:** 
 ```php
@@ -2240,7 +2240,7 @@ static function astFromValue($value, GraphQL\Type\Definition\InputType $type)
  * | Enum Value           | Mixed         |
  * | Null Value           | null          |
  *
- * @param ValueNode|null $valueNode
+ * @param VariableNode|NullValueNode|IntValueNode|FloatValueNode|StringValueNode|BooleanValueNode|EnumValueNode|ListValueNode|ObjectValueNode|null $valueNode
  * @param mixed[]|null   $variables
  *
  * @return mixed[]|stdClass|null

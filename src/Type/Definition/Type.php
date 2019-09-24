@@ -300,11 +300,9 @@ abstract class Type implements JsonSerializable
     /**
      * @param Type $type
      *
-     * @return bool
-     *
      * @api
      */
-    public static function isAbstractType($type)
+    public static function isAbstractType($type) : bool
     {
         return $type instanceof AbstractType;
     }
@@ -345,7 +343,9 @@ abstract class Type implements JsonSerializable
      */
     public static function getNullableType($type)
     {
-        return $type instanceof NonNull ? $type->getWrappedType() : $type;
+        return $type instanceof NonNull
+            ? $type->getWrappedType()
+            : $type;
     }
 
     /**
